@@ -40,9 +40,9 @@ of this.
 
 void send_mail(char *ff, const double ptmp, const double pdot, const double HH) {
   char cmd[100];  // to hold the command.
-  char to[] = "stenbocken92@gmail.com"; // email id of the recepient.
+  char to[] = "example@gmail.com"; // email id of the recepient.
   char body[999];
-  sprintf(body, "Subject: ALERT cas.c\nTo: stenbocken92@gmail.com\nFrom:87a.c\n%s\nPP=%.17e\nPd=%.17e\nHH=%.17e", ff, ptmp, pdot, HH);    // email body.
+  sprintf(body, "Subject: ALERT cas.c\nTo: example@gmail.com\nFrom:87a.c\n%s\nPP=%.17e\nPd=%.17e\nHH=%.17e", ff, ptmp, pdot, HH);    // email body.
   printf("%lu", sizeof(body)/sizeof(char));
   char tmp[] = "mail.tmp";
  
