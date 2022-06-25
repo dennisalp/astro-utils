@@ -17,7 +17,10 @@ pdftk inputs*.pdf cat output output.pdf
 
 decrypt_data.pl -d 40501004004
 
-echo 'Message' | mail -s 'Subject' stenbocken92@gmail.com
+echo 'Message' | mail -s 'Subject' test@gmail.com
 notify-send -u normal 'Topic' 'Message'
 
 find . -name '*.reg' -maxdepth 2 | cpio -pdm ~/dat/nus/87a 
+
+# https://dwheeler.com/sloccount/
+sloccount .
