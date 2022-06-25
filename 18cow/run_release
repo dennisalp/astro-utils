@@ -1,0 +1,2 @@
+#! /bin/bash -x
+mpirun -np $1 bin/cow $2 $(wc -l < $2)
