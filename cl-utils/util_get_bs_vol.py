@@ -45,7 +45,7 @@ def main():
     parser.add_argument('ps', type=float, help='Price strike')
     parser.add_argument('pu', type=float, help='Price underlying')
     parser.add_argument('tt', type=float, help='Trading days to expiry')
-    parser.add_argument('call', type=str, nargs='?', default='call', help="'call' or 'put'")
+    parser.add_argument('call', type=str, nargs='?', default='call', help="'call' or 'put' (defaults to call)")
     parser.add_argument('rr', type=float, nargs='?', default=4, help='Risk-free rate (defaults to 4)')
     args = parser.parse_args()
 
