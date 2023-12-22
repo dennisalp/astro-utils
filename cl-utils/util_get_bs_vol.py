@@ -56,7 +56,7 @@ def main():
         "Price option:           {0:>7.2f}\n".format(args.po) +
         "Price strike:           {0:>7.2f}\n".format(args.ps) +
         "Price underlying:       {0:>7.2f}\n".format(args.pu) +
-        "Trading days to expiry: {0:>7.0f}\n".format(args.tt) +
+        "Trading days to expiry: {0:>7.2f}\n".format(args.tt) +
         "Risk-free rate:         {0:>7.2f}\n".format(args.rr)
     )
     
