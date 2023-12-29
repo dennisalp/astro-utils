@@ -33,7 +33,7 @@ def find_vol(po, ps, pu, tt, rr, call, sig=0.2):
 
         if (abs(diff) < PRECISION):
             return sig
-        sig = sig + diff/vega  # f(x)/f'(x)
+        sig = sig + 0.01 * diff/vega  # f(x)/f'(x)
 
     return sig
 
