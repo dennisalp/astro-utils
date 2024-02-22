@@ -12,7 +12,10 @@ Various astronomy-related command-line utilities.
 ### fermi-quick-look
 A minimalistic pipeline for visualizing data from the Fermi/LAT gamma-ray space telescope.
 
-### frb-timing
+### timing
+High-performance parallelized C code for searching for pulsed emission from fast radio bursts. 
+
+### timing-frb
 High-performance parallelized C code for searching for pulsed emission from fast radio bursts. 
 
 ### ns-utils
