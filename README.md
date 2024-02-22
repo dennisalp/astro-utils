@@ -13,10 +13,10 @@ Various astronomy-related command-line utilities.
 A minimalistic pipeline for visualizing data from the Fermi/LAT gamma-ray space telescope.
 
 ### timing
-High-performance parallelized C code for searching for pulsed emission from fast radio bursts. 
+General Python scripts for searching for pulsed emission. Includes the `tdrpcas.py` module.
 
 ### timing-frb
-High-performance parallelized C code for searching for pulsed emission from fast radio bursts. 
+High-performance parallelized C code for searching for pulsed emission from fast radio bursts.
 
 ### ns-utils
 Quick search for pulsed emission from neutron stars using data from the XMM and Chandra space telescopes.
