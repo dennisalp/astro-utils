@@ -2,6 +2,8 @@
 2024-02-23, Dennis Alp, dalp@kth.se
 
 Search for pulsation in XRT 000519 (Jonker et al. 2013).
+
+This script searches solely a range of periods using full folding.
 '''
 
 from pdb import set_trace as st
@@ -104,6 +106,7 @@ plt.ylabel('Count')
 # Search
 tt = tt[i0:]
 tt += np.random.uniform(0, dt, tt.size)
+np.savetxt('tt_prepared.csv', tt)
 
 # for debugging and testing
 # tt = np.arange(0, 10000, 12)
