@@ -2,6 +2,8 @@
 2020-06-03, Dennis Alp, dalp@kth.se
 
 Time-domain resampled partially coherent acceleration search.
+
+Accelerated search using the FFT as well as full searches using folding for both circular and elliptic orbits.
 '''
 
 from __future__ import division, print_function
