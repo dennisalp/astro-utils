@@ -6,10 +6,10 @@ Quick search for radioactive emission lines from the Type Ia Supernova 2014J usi
 ### 18cow
 Quick search for pulsed emission from AT 2018cow using data from the NuSTAR and XMM space telescopes.
 
-### 87a\_cxo\_img\_stacker
+### 87a-cxo-img-stacker
 Small tool to quickly align some Chandra images of SN 1987A. Also includes and energy filter.
 
-### 87a\_location
+### 87a-locator
 Script used to determine the explosion coordinates of SN 1987A.
 
 ### cl-utils
