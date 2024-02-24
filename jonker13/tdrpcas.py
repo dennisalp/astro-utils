@@ -37,44 +37,35 @@ Rsun = 6.957e10 # cm
 
 
 ################################################################
-# ng15
-# eqs 3 and 4
-# The constant Tsun is used to express these masses in solar units (lorimer04 eq 8.21)
-def get_amax(PP, Mc):
-    MM = 1.4
-    return (2*np.pi/PP)**(4/3)*(GG*Msun/cc**3*Mc**3/(MM+Mc)**2)**(1/3)*cc
+# General help functions
+def get_lc(x, tr):
+
+    if x['1ppb']:
+        tmp = np.zeros(int(np.ceil(tr.max()/x['dt'])))
+        tmp[(tr//x['dt']).astype(np.int)] += 1 # assumes only 1 photon per bin
+    else:
+        tmp, _ = np.histogram(tr, np.arange(0, tr.max(), x['dt']))
+
+    # ransom02
+    # values equivalent to the mean of the data
+    # Padding with the data mean is preferable to zero-padding since
+    # zero-padding introduces low-frequency power into the Fourier
+    # response.
+    lc = np.ones(x['nn'])*tmp.mean()
+    # discard an event or two that is accelerated out of the power-of-two array
+    ii = np.min((tmp.size, lc.size))
+    lc[:ii] = tmp[:ii]
+    x['dc'] = lc[:ii].sum()
+
+    return lc
 
 
-def resample(tt, aa):
-    return tt - aa/cc * tt**2/2
-
-
-# Prints run time estimates
-def timing(x, t0, ctr, frac):
-    t1 = time.time()
-    if ctr < x['ip'] or np.mod(ctr-x['ip']+1, x['pi']) == 0:
-        tm2 = t1-t0
-        tm3 = tm2*(1/frac-1)
-        
-        if tm2 > 86400:
-            tm2 = 'elapsed: {0:4.1f} d'.format(tm2/86400.)
-        elif tm2 > 3600:
-            tm2 = 'elapsed: {0:4.1f} h'.format(tm2/3600.)
-        elif tm2 > 60:
-            tm2 = 'elapsed: {0:4.1f} min'.format(tm2/60.)
-        else:
-            tm2 = 'elapsed: {0:4.1f} s'.format(tm2)
-
-        if tm3 > 86400:
-            tm3 = ', left: {0:4.1f} d'.format(tm3/86400.)
-        elif tm3 > 3600:
-            tm3 = ', left: {0:4.1f} h'.format(tm3/3600.)
-        elif tm3 > 60:
-            tm3 = ', left: {0:4.1f} min'.format(tm3/60.)
-        else:
-            tm3 = ', left: {0:4.1f} s'.format(tm3)
-
-        print('{0:6.2f}%, '.format(100*frac) + tm2 + tm3)
+def search(x, lc):
+    ft = np.fft.rfft(lc)
+    po = np.abs(ft)**2 / x['dc']
+    nu = np.fft.rfftfreq(x['nn'], x['dt'])
+    ii = np.argmax(nu > x['fm'])
+    return nu[ii:], po[ii:]
 
 
 def out(x, nu, po, pars):
@@ -106,35 +97,47 @@ def out(x, nu, po, pars):
         # x['top'] = po.max()
 
 
+# Prints run time estimates
+def timing(x, t0, ctr, frac):
+    t1 = time.time()
+    if ctr < x['ip'] or np.mod(ctr-x['ip']+1, x['pi']) == 0:
+        tm2 = t1-t0
+        tm3 = tm2*(1/frac-1)
+
+        if tm2 > 86400:
+            tm2 = 'elapsed: {0:4.1f} d'.format(tm2/86400.)
+        elif tm2 > 3600:
+            tm2 = 'elapsed: {0:4.1f} h'.format(tm2/3600.)
+        elif tm2 > 60:
+            tm2 = 'elapsed: {0:4.1f} min'.format(tm2/60.)
+        else:
+            tm2 = 'elapsed: {0:4.1f} s'.format(tm2)
+
+        if tm3 > 86400:
+            tm3 = ', left: {0:4.1f} d'.format(tm3/86400.)
+        elif tm3 > 3600:
+            tm3 = ', left: {0:4.1f} h'.format(tm3/3600.)
+        elif tm3 > 60:
+            tm3 = ', left: {0:4.1f} min'.format(tm3/60.)
+        else:
+            tm3 = ', left: {0:4.1f} s'.format(tm3)
+
+        print('{0:6.2f}%, '.format(100*frac) + tm2 + tm3)
+
+
 
 ################################################################
-def search(x, nn, tr, aa):
+# Search of accelerated sub-segments
+# ng15
+# eqs 3 and 4
+# The constant Tsun is used to express these masses in solar units (lorimer04 eq 8.21)
+def get_amax(PP, Mc):
+    MM = 1.4
+    return (2*np.pi/PP)**(4/3)*(GG*Msun/cc**3*Mc**3/(MM+Mc)**2)**(1/3)*cc
 
-    if x['1ppb']:
-        tmp = np.zeros(int(np.ceil(tr.max()/x['dt'])))
-        tmp[(tr//x['dt']).astype(np.int)] += 1 # assumes only 1 photon per bin
-    else:
-        tmp, _ = np.histogram(tr, np.arange(0, tr.max(), x['dt']))
 
-    # ransom02
-    # values equivalent to the mean of the data
-    # Padding with the data mean is preferable to zero-padding since
-    # zero-padding introduces low-frequency power into the Fourier
-    # response.
-    lc = np.ones(nn)*tmp.mean()
-    # discard an event or two that is accelerated out of the power-of-two array
-    ii = np.min((tmp.size, lc.size))
-    lc[:ii] = tmp[:ii]
-
-    ft = np.fft.rfft(lc)
-    po = np.abs(ft)**2 / lc[:ii].sum()
-    nu = np.fft.rfftfreq(nn, x['dt'])
-
-    ii = np.argmax(nu > x['fm'])
-    ft = ft[ii:]
-    po = po[ii:]
-    nu = nu[ii:]
-    out(x, nu, po, ['accel', aa])
+def resample(tt, aa):
+    return tt - aa/cc * tt**2/2
 
 
 def accel(x, tt):
@@ -150,18 +153,22 @@ def accel(x, tt):
 
     if x['ex']:
         tmax = resample(t1, -amax)
-        nn = 2**int(np.ceil(np.log2(tmax/x['dt'])))
+        x['nn'] = 2**int(np.ceil(np.log2(tmax/x['dt'])))
     else:
-        nn = 2**int(np.ceil(np.log2(t1/x['dt'])))
+        x['nn'] = 2**int(np.ceil(np.log2(t1/x['dt'])))
 
-    da = x['as']*x['p0']*cc/(nn*x['dt'])**2*x['db']
+    da = x['as']*x['p0']*cc/(x['nn']*x['dt'])**2*x['db']
 
     start = time.time()
     for ia, aa in enumerate(np.arange(-amax, amax, da)):
+
         tr = resample(tt, aa)
         if tr.min() < 0:
             continue
-        search(x, nn, tr, aa)
+
+        lc = get_lc(x, tr)
+        nu, po = search(x, lc)
+        out(x, nu, po, ['accel', aa])
         timing(x, start, ia, (ia+1)/(2*amax/da+1))
 
     if t2 > x['tm']:
@@ -173,6 +180,7 @@ def accel(x, tt):
 
 
 ################################################################
+# Search of binary orbits
 def fold(x, tr, pars):
     if x['1ppb']:
         tmp = np.zeros(int(np.ceil(tr[-1]/x['dt'])))
@@ -186,15 +194,15 @@ def fold(x, tr, pars):
     lc[:ii] = tmp[:ii] 
 
     ft = np.fft.rfft(lc)
-    po = np.abs(ft)**2/x['dc']
-    ip = 1/np.sqrt(2)*(ft[1:-1]-ft[2:]) # Using 1/sqrt(2) instead of pi/4, see interbin.py, cf. ransom02
-    ip = np.abs(ip)**2/x['dc']
+    po = np.abs(ft)**2 / x['dc']
+    # ip = 1/np.sqrt(2)*(ft[1:-1]-ft[2:]) # Interbin power. Using 1/sqrt(2) instead of pi/4, see interbin.py, cf. ransom02
+    # ip = np.abs(ip)**2/x['dc']
     nu = np.fft.rfftfreq(x['nn'], x['dt'])
     
     ii = np.argmax(nu > x['fm'])
     ft = ft[ii:]
     po = po[ii:]
-    ip = ip[ii-2:]
+    # ip = ip[ii-2:]
     nu = nu[ii:]
 
     out(x, nu, po, ip, pars)
@@ -262,7 +270,7 @@ def scan(x, tt):
     tt = tt-x['t0']
     x['nn'] = 2**int(np.ceil(np.log2(tt[-1]/x['dt'])))
     x['start'] = time.time()
-    x['dc'] = tt.size
+    # x['dc'] = tt.size
 
     if x['nEc'] == 1:
         circular(x, tt)
