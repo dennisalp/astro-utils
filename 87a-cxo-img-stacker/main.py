@@ -9,21 +9,22 @@ from glob import glob
 x0, y0 = 4070, 4115
 bins = np.linspace(500,10000,100)
 files = {
-    'acisf24295N001_evt2.fits': (),
     'acisf21304N002_evt2.fits': (),
-    'acisf24654N001_evt2.fits': (),
-    'acisf22849N002_evt2.fits': (),
-    'acisf25514N001_evt2.fits': (),
-    'acisf23534N002_evt2.fits': (),
     'acisf22425N001_evt2.fits': (),
-    'acisf25906N001_evt2.fits': (),
+    'acisf22849N002_evt2.fits': (),
+    'acisf23534N002_evt2.fits': (),
+    'acisf24295N001_evt2.fits': (),
     'acisf24652N001_evt2.fits': (),
+    'acisf24654N001_evt2.fits': (),
+    'acisf25514N001_evt2.fits': (),
+    'acisf25906N001_evt2.fits': (),
 }
-
+exptime = 0
 
 # align
 for zoom in np.arange(1,2.5,0.7):
     for ff, xy in files.items():
+
         dat = fits.open(ff)[1].data
         xx = dat['x']
         yy = dat['y']
@@ -50,7 +51,12 @@ ee = np.array([], dtype=np.float32)
 gr = np.array([], dtype=np.float32)
 # stack
 for ff, xy in files.items():
-    dat = fits.open(ff)[1].data
+
+    dat = fits.open(ff)[1]
+    print(dat.header['DATE'], '{0:.0f} s'.format(dat.header['EXPOSURE']))
+    exptime += dat.header['EXPOSURE']
+    dat = dat.data
+
     xx = np.concatenate((xx, dat['x'] - xy[0]))
     yy = np.concatenate((yy, dat['y'] - xy[1]))
     ee = np.concatenate((ee, dat['energy']))
@@ -61,6 +67,7 @@ cl = ii & (ee >  500) & (ee <  6000) & (gr <= 6) & (gr != 1) & (gr != 5)
 fe = ii & (ee > 6400) & (ee <  6900) & (gr <= 6) & (gr != 1) & (gr != 5)
 nt = ii & (ee > 7400) & (ee < 10000) & (gr <= 6) & (gr != 1) & (gr != 5)
 
+print('Total exposure {0:.0f} ks'.format(exptime/1000))
 print('Photons (low energy, Fe, high energy):')
 print(xx[cl].size, xx[fe].size, xx[nt].size)
 print('Second central moments:')
