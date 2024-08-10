@@ -7,7 +7,7 @@ from glob import glob
 
 
 x0, y0 = 4070, 4115
-bins = np.linspace(5000,10000,100)
+bins = np.linspace(500,10000,100)
 files = {
     'acisf24295N001_evt2.fits': (),
     'acisf21304N002_evt2.fits': (),
@@ -56,17 +56,26 @@ for ff, xy in files.items():
     ee = np.concatenate((ee, dat['energy']))
     gr = np.concatenate((gr, dat['grade']))
 
-ii = (np.abs(xx) < 10) & (np.abs(yy) < 10)
+ii = (np.abs(xx) < 3) & (np.abs(yy) < 3)
+cl = ii & (ee >  500) & (ee <  6000) & (gr <= 6) & (gr != 1) & (gr != 5)
 fe = ii & (ee > 6400) & (ee <  6900) & (gr <= 6) & (gr != 1) & (gr != 5)
 nt = ii & (ee > 7400) & (ee < 10000) & (gr <= 6) & (gr != 1) & (gr != 5)
 
+print('Photons (low energy, Fe, high energy):')
+print(xx[cl].size, xx[fe].size, xx[nt].size)
+print('Second central moments:')
+print('x:', xx[cl].std(), xx[fe].std(), xx[nt].std())
+print('y:', yy[cl].std(), yy[fe].std(), yy[nt].std())
+
 plt.figure()
 plt.hist(ee[ii], bins=bins, color='gray')
+plt.hist(ee[cl], bins=bins, color='g')
 plt.hist(ee[fe], bins=bins, color='r')
 plt.hist(ee[nt], bins=bins, color='b')
 plt.grid()
 
 plt.figure()
+plt.plot(xx[cl], yy[cl], '.g', ms=.2)
 plt.plot(xx[fe], yy[fe], '.r', ms=1)
 plt.plot(xx[nt], yy[nt], '.b', ms=1)
 plt.plot(0, 0, 'ok', ms=5)
