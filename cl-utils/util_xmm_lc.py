@@ -26,7 +26,7 @@ Pay attention to how Bash interprets spaces
 
 from __future__ import division, print_function
 import os
-from pdb import set_trace as db
+from pdb import set_trace as st
 import sys
 import time
 from glob import glob
@@ -60,9 +60,9 @@ def get_src():
         print('Failed to interpret as coordinates, searching SIMBAD')
         try:
             res = Simbad.query_object(sys.argv[-1])
-            ra = res['RA'][0]
-            de = res['DEC'][0]
-            return SkyCoord(ra, de, unit=(u.hourangle, u.deg))
+            ra = res['ra'][0]
+            de = res['dec'][0]
+            return SkyCoord(ra, de, unit=(u.deg, u.deg))
         except:
             print('All interpretations failed.\nExiting\n')
             sys.exit()
@@ -200,12 +200,12 @@ def download_data():
 
 
 ################################################################
-cwd = '/Users/silver/Desktop/'
+cwd = os.path.expanduser('~/Desktop/')
 os.chdir(cwd)
 cts_per_bin = 25 # For the light curves
 cmd = ['curl', '-sS', '-O', '-J']
-purl = 'http://nxsa.esac.esa.int/nxsa-sl/servlet/data-action-aio?level=PPS&extension=FTZ&name=PIEVLI&obsno={0:10s}'
-murl = 'http://nxsa.esac.esa.int/nxsa-sl/servlet/data-action-aio?level=PPS&extension=FTZ&name=MIEVLI&obsno={0:10s}'
+purl = 'https://nxsa.esac.esa.int/nxsa-sl/servlet/data-action-aio?level=PPS&extension=FTZ&name=PIEVLI&obsno={0:10s}'
+murl = 'https://nxsa.esac.esa.int/nxsa-sl/servlet/data-action-aio?level=PPS&extension=FTZ&name=MIEVLI&obsno={0:10s}'
 XMMEA_EP = 65584
 XMMEA_EM = 65000
 
