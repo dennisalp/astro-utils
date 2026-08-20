@@ -263,17 +263,17 @@ def align_stack(images, ref_index, motion_type, levels=4):
     cumulative = [None] * n
     cumulative[ref_index] = np.eye(3, dtype=np.float64)
 
-    # frames below the reference: chain k -> k+1 -> ... -> ref
-    for k in range(ref_index - 1, -1, -1):
-        print(f"  aligning frame {k} -> {k + 1}")
-        pairwise = ecc_align_pair(grays[k + 1], grays[k], motion_type, levels)
-        cumulative[k] = _to_3x3(pairwise) @ cumulative[k + 1]
+    for k1 in range(1, n, 2):
+        k0 = max(k1-2, 0)
+        print(f"  aligning frame {k1} -> {k0}")
+        pairwise = ecc_align_pair(grays[k0], grays[k1], motion_type, levels)
+        cumulative[k1] = _to_3x3(pairwise) @ cumulative[k0]
 
-    # frames above the reference: chain k -> k-1 -> ... -> ref
-    for k in range(ref_index + 1, n):
-        print(f"  aligning frame {k} -> {k - 1}")
-        pairwise = ecc_align_pair(grays[k - 1], grays[k], motion_type, levels)
-        cumulative[k] = _to_3x3(pairwise) @ cumulative[k - 1]
+    for k1 in range(2, n, 2):
+        k0 = k1 - 2
+        print(f"  aligning frame {k1} -> {k0}")
+        pairwise = ecc_align_pair(grays[k0], grays[k1], motion_type, levels)
+        cumulative[k1] = _to_3x3(pairwise) @ cumulative[k0]
 
     return [_to_2x3(c) for c in cumulative]
 
@@ -322,13 +322,10 @@ def parse_args():
     )
     p.add_argument("-i", "--input", required=True,
                     help="Directory of TIFFs, or a glob pattern (e.g. './tiffs/*.tif')")
-    p.add_argument("-o", "--output", required=True,
+    p.add_argument("-o", "--output", default=None,
                     help="Output 16-bit TIFF path")
     p.add_argument("--align", choices=["translation", "euclidean", "affine", "none"],
                     default="translation", help="Alignment motion model (default: translation)")
-    p.add_argument("--ref-index", type=int, default=None,
-                    help="Index (0-based, after sorting) of the reference frame. "
-                         "Default: the middle frame.")
     p.add_argument("--pyramid-levels", type=int, default=4,
                     help="Number of pyramid levels for ECC alignment (default: 4)")
     p.add_argument("--max-dimension", type=int, default=None,
@@ -339,11 +336,22 @@ def parse_args():
 
 def main():
     args = parse_args()
+    ref_index = 0
 
     files = find_input_files(args.input)
+
+    if args.output is None:
+        args.output = '.'.join(files[ref_index].split('.')[:-1]) + '_hdr.tif'
+        if os.path.exists(args.output):
+            print(f"\nRemoving prior output {args.output}.")
+            os.remove(args.output)
+
+    files = find_input_files(args.input)
+
     if len(files) < 2:
         sys.exit(f"Found {len(files)} TIFF file(s) at '{args.input}' -- need at least 2.")
-    print(f"Found {len(files)} input files:")
+    print(f"\nFound {len(files)} input files:")
+
     for f in files:
         print(f"  {f}")
 
@@ -355,9 +363,6 @@ def main():
     images = load_images(files, max_dimension=args.max_dimension)
     nn = len(images)
 
-    ref_index = args.ref_index if args.ref_index is not None else 0
-    if not (0 <= ref_index < nn):
-        sys.exit(f"--ref-index {ref_index} out of range for {nn} images")
     print(f"\nReference frame: index {ref_index} ({files[ref_index]})")
 
     if args.align == "none":
@@ -371,6 +376,7 @@ def main():
 
     print(f"\nMerging...")
     fused = merge_mertens(aligned)
+
 
     print(f"\nSaving {args.output} ...")
     save_tiff_16bit(args.output, fused, icc_profile=icc_profile)
